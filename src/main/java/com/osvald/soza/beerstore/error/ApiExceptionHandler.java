@@ -1,10 +1,13 @@
 package com.osvald.soza.beerstore.error;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
@@ -18,6 +21,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class ApiExceptionHandler {
@@ -41,10 +45,18 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
-    private ApiError toApiError(String code, Locale locale) {
+    @ExceptionHandler(InvalidFormatException.class)
+    public ResponseEntity<ErrorResponse> handlerInvalidFormatException(InvalidFormatException ex, Locale locale) {
+        final String errorCode = "generic-1";
+        final HttpStatus status = HttpStatus.BAD_REQUEST;
+        final ErrorResponse errorResponse = ErrorResponse.of(status, toApiError(errorCode, locale, ex.getValue()));
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+
+    public ApiError toApiError(String code, Locale locale, Object... args) {
         String message;
         try {
-            message = apiErrorMessageSource.getMessage(code, null, locale);
+            message = apiErrorMessageSource.getMessage(code, args, locale);
         } catch (NoSuchMessageException e) {
             LOG.error("Could not find any message for {} code under {} locale", code, locale);
             message = NO_MESSAGE_AVAILABLE;
