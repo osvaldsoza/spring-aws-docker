@@ -1,6 +1,7 @@
 package com.osvald.soza.beerstore.error;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.osvald.soza.beerstore.service.exception.BusinessesException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,8 @@ public class ApiExceptionHandler {
     private final MessageSource apiErrorMessageSource;
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(MethodArgumentNotValidException ex, Locale locale) {
-        Stream<ObjectError> errors = ex.getBindingResult().getAllErrors().stream();
+    public ResponseEntity<ErrorResponse> handlerMethodArgumentNotValidException(MethodArgumentNotValidException exception, Locale locale) {
+        Stream<ObjectError> errors = exception.getBindingResult().getAllErrors().stream();
 
         List<ApiError> apiErrors = errors
                 .map(ObjectError::getDefaultMessage)
@@ -46,10 +47,19 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(InvalidFormatException.class)
-    public ResponseEntity<ErrorResponse> handlerInvalidFormatException(InvalidFormatException ex, Locale locale) {
+    public ResponseEntity<ErrorResponse> handlerInvalidFormatException(InvalidFormatException exception, Locale locale) {
         final String errorCode = "generic-1";
         final HttpStatus status = HttpStatus.BAD_REQUEST;
-        final ErrorResponse errorResponse = ErrorResponse.of(status, toApiError(errorCode, locale, ex.getValue()));
+        final ErrorResponse errorResponse = ErrorResponse.of(status, toApiError(errorCode, locale, exception.getValue()));
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+
+
+    @ExceptionHandler(BusinessesException.class)
+    public ResponseEntity<ErrorResponse> handlerBusinessesException(BusinessesException exception, Locale locale) {
+        final String errorCode = exception.getCode();
+        final HttpStatus status = exception.getStatus();
+        final ErrorResponse errorResponse = ErrorResponse.of(status, toApiError(errorCode, locale));
         return ResponseEntity.status(status).body(errorResponse);
     }
 
