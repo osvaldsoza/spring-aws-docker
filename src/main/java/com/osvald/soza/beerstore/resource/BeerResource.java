@@ -23,7 +23,20 @@ public class BeerResource {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Beer create(@Valid @RequestBody Beer beer){
-        return  beerService.save(beer);
+    public Beer create(@Valid @RequestBody Beer beer) {
+        return beerService.save(beer);
+    }
+
+    @PutMapping("/{id}")
+    public Beer update(@Valid @RequestBody Beer beer, @PathVariable Long id) {
+        beer.setId(id);
+        return beerService.save(beer);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id){
+        beerService.delete(id);
+
     }
 }

@@ -3,8 +3,8 @@ package com.osvald.soza.beerstore;
 import com.osvald.soza.beerstore.model.Beer;
 import com.osvald.soza.beerstore.model.BeerType;
 import com.osvald.soza.beerstore.repository.BeersRepository;
-import com.osvald.soza.beerstore.service.exception.BeerAlreadyExistException;
 import com.osvald.soza.beerstore.service.BeerService;
+import com.osvald.soza.beerstore.service.exception.BeerAlreadyExistException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -71,6 +71,36 @@ public class BeerServiceTest {
         assertThat(beerSaved.getName(), equalTo("Heineken"));
         assertThat(beerSaved.getType(), equalTo(BeerType.LAGER));
     }
+
+    @Test
+    public void should_verify_exist_beer(){
+        Beer newBeer = new Beer();
+        newBeer.setName("Heineken");
+        newBeer.setType(BeerType.LAGER);
+        newBeer.setVolume(new BigDecimal("355"));
+
+        Beer newBeerInDatabase = new Beer();
+        newBeerInDatabase.setId(10l);
+        newBeerInDatabase.setName("Heineken");
+        newBeerInDatabase.setType(BeerType.LAGER);
+        newBeerInDatabase.setVolume(new BigDecimal("355"));
+
+        Mockito.when(beersRepositoryMocked.findByNameAndType(newBeer.getName(), newBeer.getType())).thenReturn(Optional.ofNullable(newBeer));
+
+       assertThat(newBeer.getName(), equalTo(newBeerInDatabase.getName()));
+       assertThat(newBeer.getType(), equalTo(newBeerInDatabase.getType()));
+    }
+
+//    @Test
+//    public void should_delete_beer(){
+//        Beer beerInDatabase = new Beer();
+//        beerInDatabase.setId(10l);
+//        beerInDatabase.setName("Heineken");
+//        beerInDatabase.setType(BeerType.LAGER);
+//        beerInDatabase.setVolume(new BigDecimal("355"));
+//
+//        Mockito.when(beersRepositoryMocked.deleteById(9L)).then(beerInDatabase);
+//    }
 
     @Test
     public void should_find_beers() {
